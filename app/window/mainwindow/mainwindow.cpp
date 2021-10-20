@@ -93,6 +93,7 @@ MainWindow::MainWindow(QWidget *parent) :
   // Make node-related connections
   connect(node_panel_, &NodePanel::NodesSelected, param_panel_, &ParamPanel::SelectNodes);
   connect(node_panel_, &NodePanel::NodesDeselected, param_panel_, &ParamPanel::DeselectNodes);
+  connect(node_panel_, &NodePanel::ContextsChanged, param_panel_, &ParamPanel::SetContexts);
   connect(param_panel_, &ParamPanel::RequestSelectNode, this, [this](const QVector<Node*>& target){
     node_panel_->Select(target, true);
   });

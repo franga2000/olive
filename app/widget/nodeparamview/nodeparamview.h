@@ -25,6 +25,7 @@
 #include <QWidget>
 
 #include "node/node.h"
+#include "nodeparamviewcontextitem.h"
 #include "nodeparamviewdockarea.h"
 #include "nodeparamviewitem.h"
 #include "widget/keyframeview/keyframeview.h"
@@ -62,6 +63,8 @@ public:
 
   void SelectNodes(const QVector<Node *> &nodes);
   void DeselectNodes(const QVector<Node*>& nodes);
+
+  void SetContexts(const QVector<Node*> &contexts);
 
   const QMap<Node*, NodeParamViewItem*>& GetItemMap() const
   {
@@ -111,6 +114,7 @@ private:
 
   KeyframeView* keyframe_view_;
 
+  QMap<Node*, NodeParamViewContextItem*> context_items_;
   QMap<Node*, NodeParamViewItem*> items_;
 
   QScrollBar* vertical_scrollbar_;

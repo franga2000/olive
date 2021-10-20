@@ -65,6 +65,11 @@ void ParamPanel::DeselectAll()
   static_cast<NodeParamView*>(GetTimeBasedWidget())->DeselectAll();
 }
 
+void ParamPanel::SetContexts(const QVector<Node *> &nodes)
+{
+  static_cast<NodeParamView*>(GetTimeBasedWidget())->SetContexts(nodes);
+}
+
 void ParamPanel::Retranslate()
 {
   SetTitle(tr("Parameter Editor"));

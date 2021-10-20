@@ -192,6 +192,32 @@ void NodeParamView::DeselectNodes(const QVector<Node *> &nodes)
   }
 }
 
+void NodeParamView::SetContexts(const QVector<Node *> &contexts)
+{
+  if (contexts.isEmpty()) {
+    qDeleteAll(context_items_);
+    context_items_.clear();
+  } else {
+    for (auto it=context_items_.begin(); it!=context_items_.end(); ) {
+      if (!contexts.contains(it.key())) {
+        // Remove this context
+        delete it.value();
+        it = context_items_.erase(it);
+      } else {
+        it++;
+      }
+    }
+
+    foreach (Node *node, contexts) {
+      if (!context_items_.contains(node)) {
+        NodeParamViewContextItem *ctx_item = new NodeParamViewContextItem(node);
+        param_widget_area_->addDockWidget(Qt::LeftDockWidgetArea, ctx_item);
+        context_items_.insert(node, ctx_item);
+      }
+    }
+  }
+}
+
 void NodeParamView::resizeEvent(QResizeEvent *event)
 {
   super::resizeEvent(event);
@@ -264,6 +290,8 @@ void NodeParamView::QueueKeyframePositionUpdate()
 
 void NodeParamView::SignalNodeOrder()
 {
+  return;
+
   // Sort by item Y (apparently there's no way in Qt to get the order of dock widgets)
   QVector<Node*> nodes;
   QVector<int> item_ys;

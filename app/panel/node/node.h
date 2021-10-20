@@ -45,6 +45,8 @@ public:
   {
     node_view_->SetGraph(graph, nodes);
     toolbar_->setEnabled(graph);
+
+    emit ContextsChanged(nodes);
   }
 
   void ClearGraph()
@@ -122,6 +124,8 @@ signals:
   void NodesSelected(const QVector<Node*>& nodes);
 
   void NodesDeselected(const QVector<Node*>& nodes);
+
+  void ContextsChanged(const QVector<Node*>& nodes);
 
 private:
   virtual void Retranslate() override

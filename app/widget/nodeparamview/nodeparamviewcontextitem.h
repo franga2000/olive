@@ -18,45 +18,32 @@
 
 ***/
 
-#ifndef PARAM_H
-#define PARAM_H
+#ifndef NODEPARAMVIEWCONTEXTITEM_H
+#define NODEPARAMVIEWCONTEXTITEM_H
 
-#include "panel/curve/curve.h"
-#include "panel/timebased/timebased.h"
-#include "widget/nodeparamview/nodeparamview.h"
+#include <QDockWidget>
+
+#include "node/node.h"
+#include "nodeparamviewdockarea.h"
+#include "nodeparamviewitembase.h"
 
 namespace olive {
 
-class ParamPanel : public TimeBasedPanel
+class NodeParamViewContextItem : public NodeParamViewItemBase
 {
   Q_OBJECT
 public:
-  ParamPanel(QWidget* parent);
+  NodeParamViewContextItem(Node *node, QWidget *parent = nullptr);
 
-public slots:
-  void SelectNodes(const QVector<Node*>& nodes);
-  void DeselectNodes(const QVector<Node*>& nodes);
+  void AddNode(Node *node);
 
-  virtual void DeleteSelected() override;
+  void RemoveNode(Node *node);
 
-  virtual void SelectAll() override;
-
-  virtual void DeselectAll() override;
-
-  void SetContexts(const QVector<Node*> &nodes);
-
-signals:
-  void RequestSelectNode(const QVector<Node*>& target);
-
-  void NodeOrderChanged(const QVector<Node*>& nodes);
-
-  void FocusedNodeChanged(Node* n);
-
-protected:
-  virtual void Retranslate() override;
+private:
+  NodeParamViewDockArea *dock_;
 
 };
 
 }
 
-#endif // PARAM_H
+#endif // NODEPARAMVIEWCONTEXTITEM_H

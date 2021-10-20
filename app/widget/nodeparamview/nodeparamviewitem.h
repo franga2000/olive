@@ -23,7 +23,6 @@
 
 #include <QDockWidget>
 #include <QGridLayout>
-#include <QLabel>
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QWidget>
@@ -31,46 +30,12 @@
 #include "node/node.h"
 #include "nodeparamviewarraywidget.h"
 #include "nodeparamviewconnectedlabel.h"
+#include "nodeparamviewitembase.h"
 #include "nodeparamviewkeyframecontrol.h"
 #include "nodeparamviewwidgetbridge.h"
 #include "widget/clickablelabel/clickablelabel.h"
-#include "widget/collapsebutton/collapsebutton.h"
 
 namespace olive {
-
-class NodeParamViewItemTitleBar : public QWidget
-{
-  Q_OBJECT
-public:
-  NodeParamViewItemTitleBar(QWidget* parent = nullptr);
-
-  void SetExpanded(bool e);
-
-  void SetText(const QString& s)
-  {
-    lbl_->setText(s);
-    lbl_->setToolTip(s);
-    lbl_->setMinimumWidth(1);
-  }
-
-signals:
-  void ExpandedStateChanged(bool e);
-
-  void PinToggled(bool e);
-
-protected:
-  virtual void paintEvent(QPaintEvent *event) override;
-
-  virtual void mouseDoubleClickEvent(QMouseEvent *event) override;
-
-private:
-  bool draw_border_;
-
-  QLabel* lbl_;
-
-  CollapseButton* collapse_btn_;
-
-};
 
 class NodeParamViewItemBody : public QWidget {
   Q_OBJECT
@@ -170,7 +135,7 @@ private slots:
 
 };
 
-class NodeParamViewItem : public QDockWidget
+class NodeParamViewItem : public NodeParamViewItemBase
 {
   Q_OBJECT
 public:
@@ -183,10 +148,6 @@ public:
   // Set the timebase of the NodeParamViewItemBody
   void SetTimebase(const rational& timebase);
 
-  Node* GetNode() const;
-
-  bool IsExpanded() const;
-
   void SetHighlighted(bool e)
   {
     highlighted_ = e;
@@ -196,46 +157,25 @@ public:
 
   int GetElementY(const NodeInput& c) const;
 
-public slots:
-  void SetExpanded(bool e);
-
-  void ToggleExpanded();
-
 signals:
   void RequestSetTime(const rational& time);
 
   void RequestSelectNode(const QVector<Node*>& node);
 
-  void PinToggled(bool e);
-
-  void ExpandedChanged(bool e);
-
   void ArrayExpandedChanged(bool e);
 
-  void Moved();
-
 protected:
-  virtual void changeEvent(QEvent *e) override;
-
   virtual void paintEvent(QPaintEvent *event) override;
 
-  virtual void moveEvent(QMoveEvent *event) override;
+protected slots:
+  virtual void Retranslate() override;
 
 private:
-  NodeParamViewItemTitleBar* title_bar_;
-
   NodeParamViewItemBody* body_;
-
-  QWidget *hidden_body_;
-
-  Node* node_;
 
   rational time_;
 
   bool highlighted_;
-
-private slots:
-  void Retranslate();
 
 };
 

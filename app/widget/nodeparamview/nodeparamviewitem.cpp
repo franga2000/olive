@@ -22,7 +22,6 @@
 
 #include <QCheckBox>
 #include <QDebug>
-#include <QEvent>
 #include <QPainter>
 
 #include "common/qtutils.h"
@@ -41,38 +40,20 @@ const int NodeParamViewItemBody::kExtraButtonColumn = kKeyControlColumn-1;
 // 0 is for the array collapse button, 1 is for the main label, widgets start at 2
 const int NodeParamViewItemBody::kWidgetStartColumn = 2;
 
-#define super QDockWidget
+#define super NodeParamViewItemBase
 
 NodeParamViewItem::NodeParamViewItem(Node *node, QWidget *parent) :
-  super(parent),
-  node_(node),
+  super(node, parent),
   highlighted_(false)
 {
-  // Create title bar widget
-  title_bar_ = new NodeParamViewItemTitleBar(this);
-
-  // Add title bar to widget
-  this->setTitleBarWidget(title_bar_);
-
   // Create and add contents widget
-  body_ = new NodeParamViewItemBody(node_);
+  body_ = new NodeParamViewItemBody(node);
   connect(body_, &NodeParamViewItemBody::RequestSelectNode, this, &NodeParamViewItem::RequestSelectNode);
   connect(body_, &NodeParamViewItemBody::RequestSetTime, this, &NodeParamViewItem::RequestSetTime);
   connect(body_, &NodeParamViewItemBody::ArrayExpandedChanged, this, &NodeParamViewItem::ArrayExpandedChanged);
-  connect(title_bar_, &NodeParamViewItemTitleBar::ExpandedStateChanged, this, &NodeParamViewItem::SetExpanded);
-  connect(title_bar_, &NodeParamViewItemTitleBar::PinToggled, this, &NodeParamViewItem::PinToggled);
+  SetBody(body_);
 
-  this->setWidget(body_);
-
-  // Use dummy QWidget to retain width when not expanded (QDockWidget seems to ignore the titlebar
-  // size hints and will shrink as small as possible if the body is hidden)
-  hidden_body_ = new QWidget(this);
-
-  connect(node_, &Node::LabelChanged, this, &NodeParamViewItem::Retranslate);
-
-  setBackgroundRole(QPalette::Base);
-  setAutoFillBackground(true);
-
+  setBackgroundRole(QPalette::Window);
   setFocusPolicy(Qt::ClickFocus);
 
   Retranslate();
@@ -95,20 +76,6 @@ void NodeParamViewItem::SetTimebase(const rational& timebase)
   body_->SetTimebase(timebase);
 }
 
-Node *NodeParamViewItem::GetNode() const
-{
-  return node_;
-}
-
-void NodeParamViewItem::changeEvent(QEvent *e)
-{
-  if (e->type() == QEvent::LanguageChange) {
-    Retranslate();
-  }
-
-  super::changeEvent(e);
-}
-
 void NodeParamViewItem::paintEvent(QPaintEvent *event)
 {
   super::paintEvent(event);
@@ -122,37 +89,11 @@ void NodeParamViewItem::paintEvent(QPaintEvent *event)
   }
 }
 
-void NodeParamViewItem::moveEvent(QMoveEvent *event)
-{
-  super::moveEvent(event);
-
-  emit Moved();
-}
-
 void NodeParamViewItem::Retranslate()
 {
-  node_->Retranslate();
-
-  if (node_->GetLabel().isEmpty()) {
-    title_bar_->SetText(node_->Name());
-  } else {
-    title_bar_->SetText(tr("%1 (%2)").arg(node_->GetLabel(), node_->Name()));
-  }
+  super::Retranslate();
 
   body_->Retranslate();
-}
-
-void NodeParamViewItem::SetExpanded(bool e)
-{
-  setWidget(e ? body_ : hidden_body_);
-  title_bar_->SetExpanded(e);
-
-  emit ExpandedChanged(e);
-}
-
-bool NodeParamViewItem::IsExpanded() const
-{
-  return body_->isVisible();
 }
 
 int NodeParamViewItem::GetElementY(const NodeInput &c) const
@@ -161,65 +102,8 @@ int NodeParamViewItem::GetElementY(const NodeInput &c) const
     return body_->GetElementY(c);
   } else {
     // Not expanded, put keyframes at the titlebar Y
-    return mapToGlobal(title_bar_->rect().center()).y();
+    return mapToGlobal(title_bar()->rect().center()).y();
   }
-}
-
-void NodeParamViewItem::ToggleExpanded()
-{
-  SetExpanded(!IsExpanded());
-}
-
-NodeParamViewItemTitleBar::NodeParamViewItemTitleBar(QWidget *parent) :
-  QWidget(parent),
-  draw_border_(true)
-{
-  QHBoxLayout* layout = new QHBoxLayout(this);
-
-  collapse_btn_ = new CollapseButton();
-  connect(collapse_btn_, &QPushButton::clicked, this, &NodeParamViewItemTitleBar::ExpandedStateChanged);
-  layout->addWidget(collapse_btn_);
-
-  lbl_ = new QLabel();
-  layout->addWidget(lbl_);
-
-  // Place next buttons on the far side
-  layout->addStretch();
-
-  QPushButton* pin_btn = new QPushButton(QStringLiteral("P"));
-  pin_btn->setCheckable(true);
-  pin_btn->setFixedSize(pin_btn->sizeHint().height(), pin_btn->sizeHint().height());
-  layout->addWidget(pin_btn);
-  connect(pin_btn, &QPushButton::clicked, this, &NodeParamViewItemTitleBar::PinToggled);
-}
-
-void NodeParamViewItemTitleBar::SetExpanded(bool e)
-{
-  draw_border_ = e;
-  collapse_btn_->setChecked(e);
-
-  update();
-}
-
-void NodeParamViewItemTitleBar::paintEvent(QPaintEvent *event)
-{
-  QWidget::paintEvent(event);
-
-  if (draw_border_) {
-    QPainter p(this);
-
-    // Draw bottom border using text color
-    int bottom = height() - 1;
-    p.setPen(palette().text().color());
-    p.drawLine(0, bottom, width(), bottom);
-  }
-}
-
-void NodeParamViewItemTitleBar::mouseDoubleClickEvent(QMouseEvent *event)
-{
-  QWidget::mouseDoubleClickEvent(event);
-
-  collapse_btn_->click();
 }
 
 NodeParamViewItemBody::NodeParamViewItemBody(Node* node, QWidget *parent) :
